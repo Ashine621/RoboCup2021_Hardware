@@ -233,6 +233,15 @@ target_link_libraries(wpb_home_objects_3d
   ${catkin_LIBRARIES}
 )
 
+
+add_executable(wpb_home_grab_object
+  src/wpb_home_grab_object.cpp
+)
+add_dependencies(wpb_home_grab_object ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(wpb_home_grab_object
+  ${catkin_LIBRARIES}
+)
+
 add_executable(wpb_home_grab_action
   src/wpb_home_grab_action.cpp
 )

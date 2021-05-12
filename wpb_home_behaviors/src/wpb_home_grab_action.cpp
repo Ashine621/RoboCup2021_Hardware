@@ -42,15 +42,12 @@
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/String.h>
 #include <tf/transform_broadcaster.h>
-#include <darknet_ros_msgs/BoundingBoxes.h>
-#include <string>
-#include <iostream>
-#include <stdio.h>
+
 // 抓取参数调节（单位：米）(Modified in wpb_home.yaml!!)
 static float grab_y_offset = 0.0f;          //抓取前，对准物品，机器人的横向位移偏移量
 static float grab_lift_offset = 0.0f;       //手臂抬起高度的补偿偏移量
 static float grab_forward_offset = 0.0f;    //手臂抬起后，机器人向前抓取物品移动的位移偏移量
-static float grab_gripper_value = 0.07;    //抓取物品时，手爪闭合后的手指间距
+static float grab_gripper_value = 0.04;    //抓取物品时，手爪闭合后的手指间距
 
 static float vel_max = 0.5;                     //移动限速
 
@@ -90,10 +87,8 @@ static float fMoveTargetY = 0;
 
 static int nTimeDelayCounter = 0;
 
-static float fTargetGrabX = 1.2;        //准备放下爪子前目标物品的x坐标
-static float fTargetGrabY = 0.0;        //准备放下爪子前目标物品的y坐标
-
-static std::string target = "water";
+static float fTargetGrabX = 0.9;        //抓取时目标物品的x坐标
+static float fTargetGrabY = 0.0;        //抓取时目标物品的y坐标
 
 void GrabActionCallback(const geometry_msgs::Pose::ConstPtr& msg)
 {
@@ -103,7 +98,7 @@ void GrabActionCallback(const geometry_msgs::Pose::ConstPtr& msg)
     fObjGrabZ = msg->position.z;
     ROS_WARN("[OBJ_TO_GRAB] x = %.2f y= %.2f ,z= %.2f " ,fObjGrabX, fObjGrabY, fObjGrabZ);
     ctrl_msg.data = "pose_diff reset";
-    odom_ctrl_pub.publish(ctrl_msg);
+    odom_ctrl_pub.publish(ctrl_msg); // 发现物品就重置里程计差分值
 
     // ajudge the dist to obj
     fMoveTargetX = fObjGrabX - fTargetGrabX; //机器人期望向前移动的距离
@@ -138,7 +133,7 @@ void VelCmd(float inVx , float inVy, float inTz) //发布速度值，使用VelFi
     vel_pub.publish(vel_cmd);
 }
 
-void BehaviorCB(const std_msgs::String::ConstPtr &msg)
+void BehaviorCB(const std_msgs::String::ConstPtr &msg) // 这个msg可以让抓取停下
 {
     int nFindIndex = msg->data.find("grab stop");
     if( nFindIndex >= 0 )
@@ -157,27 +152,6 @@ void BehaviorCB(const std_msgs::String::ConstPtr &msg)
 
 }
 
-void yolo_callback(const darknet_ros_msgs::BoundingBoxes::ConstPtr &msg)
-{
-    //ROS_INFO("%s",msg->bounding_boxes[0].Class.c_str());
-    int i=0,target_detect=0;
-    int x=0;
-    int y=0;
-    while(sizeof(msg->bounding_boxes[i]))
-    {
-        if(msg->bounding_boxes[i].Class.c_str()==target)
-            {
-                target_detect=1;
-                x=960/2-(msg->bounding_boxes[i].xmin+msg->bounding_boxes[i].xmax)/2;
-                y=target_detect*x*0.002;
-            }
-    i++;
-    }
-    geometry_msgs::Twist vel_cmd;
-    vel_cmd.linear.y=y;
-    vel_pub.publish(vel_cmd);
-}
-
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "wpb_home_grab_action");
@@ -185,15 +159,14 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh;
 
-    vel_pub = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 30);
-    mani_ctrl_pub = nh.advertise<sensor_msgs::JointState>("/wpb_home/mani_ctrl", 30);
-    result_pub = nh.advertise<std_msgs::String>("/wpb_home/grab_result", 30);
+    vel_pub = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 30); // 发布底盘速度
+    mani_ctrl_pub = nh.advertise<sensor_msgs::JointState>("/wpb_home/mani_ctrl", 30); // 发布机械臂运动 JointState里面是几个vector，存了机械臂Joints的名字、高度和移动速度
+    result_pub = nh.advertise<std_msgs::String>("/wpb_home/grab_result", 30); // 向外发布抓取流程进度
 
     ros::Subscriber sub_grab_pose = nh.subscribe("/wpb_home/grab_action", 1, GrabActionCallback);
-    ros::Subscriber sub_beh = nh.subscribe("/wpb_home/behaviors", 30, BehaviorCB);
+    ros::Subscriber sub_beh = nh.subscribe("/wpb_home/behaviors", 30, BehaviorCB); // 随时准备获取抓取停止消息"grab stop"
     odom_ctrl_pub = nh.advertise<std_msgs::String>("/wpb_home/ctrl", 30);
-    ros::Subscriber pose_diff_sub = nh.subscribe("/wpb_home/pose_diff", 1, PoseDiffCallback);
-    ros::Subscriber yolo_sub = nh.subscribe("/darknet_ros/bounding_boxes", 1000, yolo_callback);
+    ros::Subscriber pose_diff_sub = nh.subscribe("/wpb_home/pose_diff", 1, PoseDiffCallback); // 获取机器人底盘电机码盘解算的里程计信息
 
     mani_ctrl_msg.name.resize(2);
     mani_ctrl_msg.position.resize(2);
