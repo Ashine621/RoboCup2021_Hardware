@@ -44,10 +44,10 @@
 #include <tf/transform_broadcaster.h>
 
 // 抓取参数调节（单位：米）(Modified in wpb_home.yaml!!)
-static float grab_y_offset = -0.03f;          //抓取前，对准物品，机器人的横向位移偏移量
+static float grab_y_offset = -0.04f;          //抓取前，对准物品，机器人的横向位移偏移量
 static float grab_lift_offset = 0.0f;       //手臂抬起高度的补偿偏移量
-static float grab_forward_offset = 0.07f;    //手臂抬起后，机器人向前抓取物品移动的位移偏移量
-static float grab_gripper_value = 0.05;    //抓取物品时，手爪闭合后的手指间距
+static float grab_forward_offset = 0.065f;    //手臂抬起后，机器人向前抓取物品移动的位移偏移量
+static float grab_gripper_value = 0.0f;    //抓取物品时，手爪闭合后的手指间距
 
 static float vel_max = 0.5;                     //移动限速
 
