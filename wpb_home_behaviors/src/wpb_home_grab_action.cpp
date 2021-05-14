@@ -44,10 +44,10 @@
 #include <tf/transform_broadcaster.h>
 
 // 抓取参数调节（单位：米）(Modified in wpb_home.yaml!!)
-static float grab_y_offset = 0.0f;          //抓取前，对准物品，机器人的横向位移偏移量
+static float grab_y_offset = -0.03f;          //抓取前，对准物品，机器人的横向位移偏移量
 static float grab_lift_offset = 0.0f;       //手臂抬起高度的补偿偏移量
-static float grab_forward_offset = 0.0f;    //手臂抬起后，机器人向前抓取物品移动的位移偏移量
-static float grab_gripper_value = 0.04;    //抓取物品时，手爪闭合后的手指间距
+static float grab_forward_offset = 0.07f;    //手臂抬起后，机器人向前抓取物品移动的位移偏移量
+static float grab_gripper_value = 0.05;    //抓取物品时，手爪闭合后的手指间距
 
 static float vel_max = 0.5;                     //移动限速
 
@@ -229,7 +229,7 @@ int main(int argc, char **argv)
             VelCmd(0,0,0);
             if(nTimeDelayCounter > 20*30) //当过了挺长时间后， 机械臂肯定已经抬起来了 这时候准备进入下一个状态
             {
-                fMoveTargetX = fTargetGrabX -0.65 + grab_forward_offset; //0.65应该是机械臂展开后的长度 这个意思是更新需要前进的距离，让机器移动到机械臂正好能夹住物体的位置
+                fMoveTargetX = fTargetGrabX - 0.65 + grab_forward_offset; //0.65应该是机械臂展开后的长度 这个意思是更新需要前进的距离，让机器移动到机械臂正好能夹住物体的位置 ***要改
                 fMoveTargetY = 0;
                 ROS_WARN("[STEP_FORWARD] x = %.2f y= %.2f " ,fMoveTargetX, fMoveTargetY);
                 nTimeDelayCounter = 0; 

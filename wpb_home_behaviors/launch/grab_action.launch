@@ -11,7 +11,7 @@
     <rosparam file="$(find wpb_home_bringup)/config/wpb_home.yaml" command="load" />
   </node>
 
-  <node pkg="wpb_home_tutorials" type="wpb_home_grab_object" name="wpb_home_grab_object" output = "screen"/>
+  <node pkg="wpb_home_behaviors" type="wpb_home_grab_object" name="wpb_home_grab_object" output = "screen"/>
 
   <!--- Run Kinect -->
   <!--************************ kinect ************************-->

@@ -7,6 +7,8 @@
     <rosparam file="$(find wpb_home_bringup)/config/wpb_home.yaml" command="load" />
   </node>
 
+  <include file="$(find darknet_ros)/launch/darknet_ros.launch" />
+
   <!--- Run Kinect -->
   <!--************************ kinect ************************-->
   <arg name="base_name"         default="kinect2"/>

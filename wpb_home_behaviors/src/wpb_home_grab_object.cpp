@@ -38,15 +38,23 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Pose.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Bool.h>
 #include <wpb_home_behaviors/Coord.h>
 
 static ros::Publisher grab_pub;
 static geometry_msgs::Pose grab_msg;
 static bool bGrabbing = false;
 
+static bool GrabPose_Pub_Flag = false;
+
+void FlagCB(const std_msgs::Bool::ConstPtr &msg)
+{
+    GrabPose_Pub_Flag = msg->data;
+}
+
 void ObjCoordCB(const wpb_home_behaviors::Coord::ConstPtr &msg)
 {
-    if(bGrabbing == false)
+    if(!bGrabbing && GrabPose_Pub_Flag)
     {
         int nNumObj = msg->name.size();
         ROS_WARN("[ObjCoordCB] obj = %d",nNumObj);
@@ -74,6 +82,8 @@ int main(int argc, char** argv)
 
     ros::NodeHandle n;
     grab_pub = n.advertise<geometry_msgs::Pose>("/wpb_home/grab_action", 1);
+
+    ros::Subscriber flag_sub = n.subscribe("/grab_start_flag", 10, FlagCB);
     ros::Subscriber obj_sub = n.subscribe("/wpb_home/objects_3d", 1, ObjCoordCB);
     ros::Subscriber res_sub = n.subscribe("/wpb_home/grab_result", 30, GrabResultCB);
 
